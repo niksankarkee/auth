@@ -2,36 +2,32 @@ const User = require('../model/UserModels');
 const bcrypt = require('bcrypt');
 
 exports.register = (req, res, next) => {
-    User.findOne({ email: req.body.email }, (err, user) => {
-        if (user === null) {
-            bcrypt.hash(req.body.password, 10, (err, hash) => {
+    const email = req.body.email;
+    const username = req.body.username;
+    const role = 'customer',
+    const password = req.body.password;
+    // const passwordConfirm = req.body.passwordConfirm;
 
-            })
-        }
-    })
-}
-
-exports.register = (req, res, next) => {
     User.findOne({ email: req.body.email })
-        .then((err, user) => {
-            if (user !== null) {
+        .then(validatemail => {
+            if (validatemail !== null) {
                 return res.json({ err: 'Email has been used' })
             }
-            return bcrypt.hash(req.body.password, 10);
-        })
-        .then((err, hash) => {
-            if (err) {
-                return next(err);
-            }
-            const user = new User(req.body);
-            user.role = ['customer'];
-            user.password = hash;
-            user.passwordConfirm = hash;
-            return user.save(result => {
-                res.json({ user: result })
-            })
+            return bcrypt
+                .hash(password, 10)
+                .then(hashPassword => {
+                    const user = new User({
+                        role: [role],
+                        password: hashPassword,
+                        passwordConfirm: hashPassword
+                    });
+                    return user.save();
+                })
+                .then(user => {
+                    res.json({ user: user });
+                })
         })
         .catch(err => {
-            res.json({ err: err });
+            res.status(400).send(err);
         })
 }
