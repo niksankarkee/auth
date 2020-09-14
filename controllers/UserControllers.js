@@ -4,11 +4,11 @@ const bcrypt = require('bcrypt');
 exports.register = (req, res, next) => {
     const email = req.body.email;
     const username = req.body.username;
-    const role = 'customer',
+    const role = 'customer';
     const password = req.body.password;
     // const passwordConfirm = req.body.passwordConfirm;
 
-    User.findOne({ email: req.body.email })
+    User.findOne({ email: email })
         .then(validatemail => {
             if (validatemail !== null) {
                 return res.json({ err: 'Email has been used' })
@@ -17,7 +17,9 @@ exports.register = (req, res, next) => {
                 .hash(password, 10)
                 .then(hashPassword => {
                     const user = new User({
-                        role: [role],
+                        username: username,
+                        email: email,
+                        role: role,
                         password: hashPassword,
                         passwordConfirm: hashPassword
                     });
