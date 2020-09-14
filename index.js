@@ -6,6 +6,9 @@ const expressValidator = require('express-validator');
 const routes = require('./routes/routes');
 const mongoose = require('mongoose');
 
+const session = require('express-session');
+const MongoStore = require('connect-mongo')(session);
+
 const app = express();
 
 const db = mongoose.connection;
@@ -20,11 +23,19 @@ mongoose.connect(process.env.DB_CONNECT,
     })
     .then(() => {
         console.log('Db connected');
+    })
+    .catch(err => {
+        console.log('DB connection eror: ', err.message);
     });
 
-db.on('error', err => {
-    console.log('DB connection eror: ', err.message);
-});
+app.use(session({
+    secret: 'my secret',
+    resave: true,
+    saveUninitialized: false,
+    store: new MongoStore({
+        mongooseConnection: db
+    })
+}))
 
 app.use(morgan('dev'));
 app.use(bodyParser.json());

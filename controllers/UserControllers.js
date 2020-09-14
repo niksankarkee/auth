@@ -6,7 +6,6 @@ exports.register = (req, res, next) => {
     const username = req.body.username;
     const role = 'customer';
     const password = req.body.password;
-    // const passwordConfirm = req.body.passwordConfirm;
 
     User.findOne({ email: email })
         .then(validatemail => {
@@ -31,5 +30,32 @@ exports.register = (req, res, next) => {
         })
         .catch(err => {
             res.status(400).send(err);
+        })
+}
+
+exports.login = (req, res, next) => {
+    User.findOne({ email: req.body.email })
+        .exec()
+        .then(user => {
+            if (!user) {
+                return res.json({ 'error': 'Username and Passwordare incorrect' });
+            }
+            bcrypt
+                .compare(req.body.password, user.password)
+                .then(domMatch => {
+                    if (domMatch) {
+                        req.session.user = user;
+                        res.json({
+                            user: user,
+                            'login': 'success'
+                        })
+                    } else {
+                        return res.json({ 'err': 'Username and password are incorrect' });
+                    }
+                })
+
+        })
+        .catch(err => {
+            return res.json({ err })
         })
 }
